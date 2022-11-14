@@ -60,7 +60,15 @@ def sum_size(files):
     return sum(t[1] for t in files)
 
 
-def find_size_limit(files, limit_size):
+def cumulative_sum(values):
+    """create a cumulative sum, e.g. of file sizes"""
+    last = 0
+    for v in values:
+        last += v
+        yield v
+
+
+def find_size_limit_old(files, limit_size):
     """
     Find the place in the list where the size limit is exceeded
     """
@@ -70,6 +78,17 @@ def find_size_limit(files, limit_size):
             return i  # we found the cut-off point
         size -= f[1]
     return i
+
+
+def find_size_limit(cumulative_sizes, limit_size):
+    """
+    Using cumulative sizes, find the place of old files to throw away
+    Return the first index that we keep
+    """
+    # what is the cumulative target to throw away?
+    target = cumulative_sizes[-1] - limit_size
+    # find index where cumulative size is greater or equal to what is needed to throw away
+    return find_ge(cumulative_sizes, target) + 1
 
 
 def find_atime_limit(files, atime):
@@ -180,6 +199,9 @@ def main():
     # sort files according to access time, oldest first (lowest timestamp)
     files.sort()
 
+    # and create the cumulative sum
+    cumulative_sizes = list(cumulative_sum([f[1] for f in files]))
+
     # now apply the criteria
     i_keep = 0  # the index of the oldest (lowest timestamp) file we keep
     now = datetime.datetime.utcnow()
@@ -199,7 +221,7 @@ def main():
 
     if args.max_size is not None:
         i = i_keep
-        i_keep = max(i_keep, find_size_limit(files, args.max_size))
+        i_keep = max(i_keep, find_size_limit(cumulative_sizes, args.max_size))
         if i_keep != i:
             print(
                 "--max-size=%s limiting kept files to %d"
@@ -239,7 +261,7 @@ def main():
         if args.max_size_hard is not None:
             # still, we do provide a way to limit, even min_age, if our disk has limited size.
             i = i_keep
-            i_keep = max(i_keep, find_size_limit(files, args.max_size_hard))
+            i_keep = max(i_keep, find_size_limit(cumulative_sizes, args.max_size_hard))
             if i_keep != i:
                 print(
                     "--max-size-hard=%s limiting kept files to %d"

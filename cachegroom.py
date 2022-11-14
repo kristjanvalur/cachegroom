@@ -154,6 +154,11 @@ def main():
 
     parser.add_argument("--dry-run", action="store_true", help="do not delete anything")
     parser.add_argument("--max-size", type=unitsize, help="maximum total size of files")
+    parser.add_argument(
+        "--max-size-hard",
+        type=unitsize,
+        help="maximum total size of files, overriding --min-age",
+    )
     parser.add_argument("--max-count", type=int, help="maximum total number of files")
     parser.add_argument(
         "--min-age", type=int, help="don't throw away anything younger than this (days)"
@@ -230,6 +235,21 @@ def main():
             )
         else:
             print("--min-age=%r not forcing kept files" % (args.min_age,))
+
+        if args.max_size_hard is not None:
+            # still, we do provide a way to limit, even min_age, if our disk has limited size.
+            i = i_keep
+            i_keep = max(i_keep, find_size_limit(files, args.max_size_hard))
+            if i_keep != i:
+                print(
+                    "--max-size-hard=%s limiting kept files to %d"
+                    % (format_size2(args.max_size), len(files) - i_keep)
+                )
+            else:
+                print(
+                    "--max-size-hard=%r not limiting kept files"
+                    % (format_size2(args.max_size),)
+                )
 
     # perform the action
     if not args.dry_run:

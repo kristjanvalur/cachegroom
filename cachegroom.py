@@ -193,8 +193,12 @@ def main():
     print("Trimming P4 versioned file folder %r:" % args.root)
 
     files = find_versioned_files(args.root)
+
     size = sum_size(files)
     print("Found %d files, %s" % (len(files), format_size2(size)))
+
+    if not files:
+        return  # without any files, just quit
 
     # sort files according to access time, oldest first (lowest timestamp)
     files.sort()

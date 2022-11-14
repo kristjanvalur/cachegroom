@@ -62,10 +62,12 @@ def sum_size(files):
 
 def cumulative_sum(values):
     """create a cumulative sum, e.g. of file sizes"""
-    last = 0
-    for v in values:
+    it = iter(values)
+    last = next(it)
+    yield last
+    for v in it:
         last += v
-        yield v
+        yield last
 
 
 def find_size_limit_old(files, limit_size):

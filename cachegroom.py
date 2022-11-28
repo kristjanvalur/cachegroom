@@ -271,12 +271,12 @@ def main():
             if i_keep != i:
                 print(
                     "--max-size-hard=%s limiting kept files to %d"
-                    % (format_size2(args.max_size), len(files) - i_keep)
+                    % (format_size2(args.max_size_hard), len(files) - i_keep)
                 )
             else:
                 print(
                     "--max-size-hard=%r not limiting kept files"
-                    % (format_size2(args.max_size),)
+                    % (format_size2(args.max_size_hard),)
                 )
 
     # perform the action
